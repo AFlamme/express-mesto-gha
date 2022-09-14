@@ -1,51 +1,56 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const { celebrate, Joi } = require('celebrate');
+const cors = require('cors');
 const { errors } = require('celebrate');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const { authValidation, regValidation } = require('./middlewares/validation');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const { requestLogger, errorLogger } = require('./middlewares/logger');
+const userRouter = require('./routes/users');
+const cardRouter = require('./routes/cards');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
-
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true,
+mongoose.connect('mongodb://localhost:27017/mestodb')
+  .then(() => console.log('connected'))
+  .catch((err) => console.log(`Ошибка ${err.name}: ${err.message}`));
+
+app.use((req, res, next) => {
+  console.log(`${req.method}: ${req.path} ${JSON.stringify(req.body)}`);
+  next();
 });
 
-app.use(requestLogger);
+app.post('/signin', authValidation, login);
+app.post('/signup', regValidation, createUser);
 
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string()
-      .regex(/^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\/?$/),
-  }),
-}), createUser);
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), login);
+app.use('/', auth, userRouter);
+app.use('/', auth, cardRouter);
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
+});
 
-app.use(auth);
+app.use(errors());
 
-app.use('/', require('./routes/users'));
-app.use('/', require('./routes/cards'));
-app.use('*', require('./routes/NotFound'));
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  next();
+});
 
-app.use(errorLogger);
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`);
+});
 
 app.use(errors());
 app.use((err, req, res, next) => {
