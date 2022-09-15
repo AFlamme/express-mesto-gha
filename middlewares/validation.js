@@ -1,4 +1,5 @@
-const { celebrate } = require('celebrate');
+const celebrate = require('celebrate');
+const Joi = require('joi');
 const validator = require('validator');
 
 const validateUrl = ((value) => {
