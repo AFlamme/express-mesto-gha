@@ -5,5 +5,5 @@ class BadReqError extends Error {
     }
   }
   
-module.exports = BadReqError;
+  module.exports = BadReqError;
   
