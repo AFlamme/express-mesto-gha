@@ -25,10 +25,10 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(() => next(new NotFoundError('Карточка с указанным _id не найдена.')))
+    .orFail(() => next(new NotFoundError('Карточка с указанным _id не найдена!')))
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        next(new ForbiddenError('Попытка удалить чужую карточку.'));
+        next(new ForbiddenError('У вас недостаточно прав для удаления карточки!'));
       } else {
         Card.findByIdAndRemove(req.params.cardId)
           .then(() => res.send(card))
