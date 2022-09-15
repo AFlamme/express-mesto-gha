@@ -35,6 +35,8 @@ app.use('/', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
 
+app.use(errors());
+
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode)
@@ -48,15 +50,4 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
-});
-
-app.use(errors());
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка по умолчанию' : message });
-  next();
-});
-
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
 });

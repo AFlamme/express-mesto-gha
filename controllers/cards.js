@@ -24,28 +24,23 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId)
+  const { cardid } = req.params;
+  const userId = req.user._id;
+
+  Card.findById({ _id: cardid })
     .orFail(() => {
-      throw new Error('IncorrectId');
+      throw new NotFoundError(`По указанному id = ${cardid} карточка не найдена!`);
     })
     .then((card) => {
-      if (card.owner._id.toString() === req.user._id) {
-        Card.deleteOne(card).then(() => {
-          res.status(200).send({ message: 'Карточка удалена!' });
-        });
-      } else {
+      if (card.owner.toString() !== userId) {
         throw new ForbiddenError('У вас недостаточно прав для удаления карточки!');
       }
+      return Card.findByIdAndRemove(card._id);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        throw new BadReqError('По указанному id карточка id не найдена!');
-      } else if (err.message === 'IncorrectId') {
-        throw new NotFoundError('По указанному id карточка id не найдена!');
-      } else next(err);
-    })
+    .then((card) => res.send({ message: 'Успешно удалена карточка:', data: card }))
     .catch(next);
 };
+
 
 module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
