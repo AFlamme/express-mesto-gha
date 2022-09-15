@@ -25,10 +25,10 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(() => next(new NotFoundError(`По указанному id = ${cardid} карточка не найдена!`)))
+    .orFail(() => next(new NotFoundError('Карточка с указанным _id не найдена.')))
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        next(new ForbiddenError('У вас недостаточно прав для удаления карточки!'));
+        next(new ForbiddenError('Попытка удалить чужую карточку.'));
       } else {
         Card.findByIdAndRemove(req.params.cardId)
           .then(() => res.send(card))
@@ -37,7 +37,7 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadReqError('Переданы некорректные данные при удалении карточки!'));
+        next(new BadReqError('Переданы некорректные данные при удалении карточки.'));
       } else {
         next(err);
       }
