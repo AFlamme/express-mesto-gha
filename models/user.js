@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const isUrl = require('validator/lib/isURL');
 const isEmail = require('validator/lib/isEmail');
 const NotAuthError = require('../errors/not-auth-err');
 
@@ -17,16 +16,17 @@ const userSchema = new mongoose.Schema({
     maxlength: 30,
     default: 'Исследователь',
   },
-
   avatar: {
     type: String,
+    required: false,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: (url) => isUrl(url),
-      message: 'Неверно указана ссылка',
+      validator(v) {
+        return /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/.test(v);
+      },
+      message: (props) => `${props.value} is not a valid link!`,
     },
   },
-
   email: {
     type: String,
     required: true,

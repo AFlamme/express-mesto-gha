@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const { errors } = require('celebrate');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -34,8 +33,6 @@ app.use('/', auth, cardRouter);
 app.use('/', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
-
-app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
