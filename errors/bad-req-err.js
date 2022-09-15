@@ -6,4 +6,3 @@ class BadReqError extends Error {
 }
 
 module.exports = BadReqError;
-  

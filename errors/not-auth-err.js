@@ -4,5 +4,5 @@ class NotAuthError extends Error {
     this.statusCode = 401;
   }
 }
-  
+
 module.exports = NotAuthError;
